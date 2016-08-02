@@ -3,14 +3,31 @@
 
 #include <vector>
 #include <algorithm>
+#include <array>
 
 typedef unsigned char byte;
 typedef unsigned long ulong;
+
+typedef std::array<byte, 64> barr64;
 
 #include <stdio.h>
 
 
 static void byte_vector_copy(const std::vector<byte>& source, int source_pos, std::vector<byte>& target, int target_pos, int count)
+{
+    for (auto aaa = 0; aaa < count; aaa++) {
+        target[target_pos + aaa] = source[source_pos + aaa];
+    }
+}
+
+static void byte_vector_copy(const std::vector<byte>& source, int source_pos, barr64& target, int target_pos, int count)
+{
+    for (auto aaa = 0; aaa < count; aaa++) {
+        target[target_pos + aaa] = source[source_pos + aaa];
+    }
+}
+
+static void byte_vector_copy(const barr64& source, int source_pos, barr64& target, int target_pos, int count)
 {
     for (auto aaa = 0; aaa < count; aaa++) {
         target[target_pos + aaa] = source[source_pos + aaa];
@@ -27,9 +44,9 @@ public:
     std::vector<byte> GetHash(std::vector<byte> message);
 
 private:
-    unsigned char iv[64];
-    unsigned char N[64];
-    unsigned char Sigma[64];
+    barr64 iv;
+    barr64 N;
+    barr64 Sigma;
 
     int outLen = 0;
 
@@ -38,16 +55,11 @@ private:
     const static byte Tau[];
     const static byte C[12][64];
 
-    std::vector<byte> AddModulo512(std::vector<byte> a, std::vector<byte> b)
+    barr64 AddModulo512(barr64 a, std::vector<byte> b)
     {
-        std::vector<byte> result;
-        result.resize(64);
-
-        std::vector<byte> tempA;
-        tempA.resize(64);
-        
-        std::vector<byte> tempB;
-        tempB.resize(64);
+        barr64 result;
+        barr64 tempA;
+        barr64 tempB;
 
         int i = 0, t = 0;
 
@@ -62,20 +74,17 @@ private:
         return result;
     }
 
-    std::vector<byte> AddXor512(std::vector<byte> a, std::vector<byte> b)
+    barr64 AddXor512(barr64 a, barr64 b)
     {
-        std::vector<byte> result;
-        result.resize(64);
-
+        barr64 result;
         for (int i = 0; i < 64; i++)
             result[i] = (byte)(a[i] ^ b[i]);
         return result;
     }
 
-    std::vector<byte> S(std::vector<byte> state)
+    barr64 S(barr64 state)
     {
-        std::vector<byte> result;
-        result.resize(64);
+        barr64 result;
 
         for (int i = 0; i < 64; i++) {
             result[i] = Sbox[state[i]];
@@ -83,21 +92,18 @@ private:
         return result;
     }
 
-    std::vector<byte> P(std::vector<byte> state)
+    barr64 P(barr64 state)
     {
-        std::vector<byte> result;
-        result.resize(64);
-
+        barr64 result;
         for (int i = 0; i < 64; i++) {
             result[i] = state[Tau[i]];
         }
         return result;
     }
 
-    std::vector<byte> L(std::vector<byte> state)
+    barr64 L(barr64 state)
     {
-        std::vector<byte> result;
-        result.resize(64);
+        barr64 result;
 
         unsigned long long v = 0;
         int i = 0, j = 0, k = 0;
@@ -118,22 +124,23 @@ private:
         return result;
     }
 
-    std::vector<byte> KeySchedule(std::vector<byte> K, int i)
+    barr64 KeySchedule(barr64 K, int i)
     {
         const byte* Ci = C[i];
-        std::vector<byte> ci;
-        ci.assign(Ci, Ci + 64);
+        barr64 ci;
+        for(i=0; i<64; i++) ci[i] = Ci[i];
+        //ci.assign(Ci, Ci + 64);
 
-        K = AddXor512(K, ci);
-        K = S(K);
-        K = P(K);
-        K = L(K);
-        return K;
+        barr64 k = AddXor512(K, ci);
+        k = S(k);
+        k = P(k);
+        k = L(k);
+        return k;
     }
 
-    std::vector<byte> E(std::vector<byte> K, std::vector<byte> m)
+    barr64 E(barr64 K, barr64 m)
     {
-        std::vector<byte> state = AddXor512(K, m);
+        barr64 state = AddXor512(K, m);
         for (int i = 0; i < 12; i++) {
             state = S(state);
             state = P(state);
@@ -144,19 +151,17 @@ private:
         return state;
     }
 
-    std::vector<byte> G_n(std::vector<byte> N, std::vector<byte> h, std::vector<byte> m)
+    barr64 G_n(barr64 N, barr64 h, barr64 m)
     {
-        std::vector<byte> K = AddXor512(h, N);
+        barr64 K = AddXor512(h, N);
         K = S(K);
         K = P(K);
         K = L(K);
         
-        std::vector<byte> t = E(K, m);
+        barr64 t = E(K, m);
         t = AddXor512(t, h);
         
-        std::vector<byte> newh = AddXor512(t, m);
-        return newh;
-        //return std::vector<byte>();
+        return AddXor512(t, m);
     }
 };
 

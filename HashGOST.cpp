@@ -121,8 +121,7 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
 {
     int len = message.size() * 8;
 
-    std::vector<byte> h;
-    h.resize(64);
+    barr64 h;
 
     for (int i = 0; i < 64; i++) {
         h[i] = iv[i];
@@ -195,10 +194,7 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
         byte_vector_copy(message1, 0, paddedMes, 64 - message1.size(), message1.size());
     }
 
-    std::vector<byte> Nt;
-    Nt.assign(N, N + 64);
-
-    h = G_n(Nt, h, paddedMes);
+    h = G_n(N, h, paddedMes);
     
     std::vector<byte> MesLen;
     MesLen.resize(4);
@@ -209,11 +205,9 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
     
     std::reverse(std::begin(MesLen), std::end(MesLen));  
     
-    Nt = AddModulo512(Nt, MesLen);
+    N = AddModulo512(N, MesLen);
     
-    std::vector<byte> Sigmat;
-    Sigmat.resize(64);
-    Sigmat = AddModulo512(Sigmat, paddedMes);
+    Sigma = AddModulo512(Sigma, paddedMes);
     
     std::vector<byte> N_0t;
     N_0t.assign(N_0, N_0 + 64);
