@@ -65,20 +65,16 @@ int main(int argc, char** argv)
     std::vector<byte> xG = FromHexStringToByte("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012");
 
     std::string test = "test";
-
     std::vector<unsigned char> bytes(test.begin(), test.end());
-    for (auto& ttt : bytes) // access by reference to avoid copying
-    {
-        printf("test message -----> %d\n", ttt);
-    }
-    
+   
     HashGOST hash(256);
-    hash.GetHash(bytes);
+    std::vector<unsigned char> hash_test = hash.GetHash(bytes);
+    
 
-    //std::vector<int> test1;
-    //test1.reserve(20000);
-    //test1[10] = 10;
-
+    for (auto& ttt : hash_test) // access by reference to avoid copying
+    {
+        printf("hash_test -----> %d\n", ttt);
+    }
 
     return 0;
 }

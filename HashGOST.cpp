@@ -198,15 +198,8 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
     std::vector<byte> Nt;
     Nt.assign(N, N + 64);
 
-    printf("test \n");
-
     h = G_n(Nt, h, paddedMes);
     
-        for (auto& ttt : h) // access by reference to avoid copying
-    {
-        printf("h -----> %d\n", ttt);
-    }
-
     std::vector<byte> MesLen;
     MesLen.resize(4);
     for (int i = 0; i < 4; i++) {
@@ -218,23 +211,26 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
     
     Nt = AddModulo512(Nt, MesLen);
     
-
-    /*
-    byte[] MesLen = BitConverter.GetBytes(message1.Length * 8);
-    N = AddModulo512(N, MesLen.Reverse().ToArray());
-    Sigma = AddModulo512(Sigma, paddedMes);
-    h = G_n(N_0, h, N);
-    h = G_n(N_0, h, Sigma);
+    std::vector<byte> Sigmat;
+    Sigmat.resize(64);
+    Sigmat = AddModulo512(Sigmat, paddedMes);
+    
+    std::vector<byte> N_0t;
+    N_0t.assign(N_0, N_0 + 64);
+    h = G_n(N_0t, h, Nt);
+    h = G_n(N_0t, h, Sigmat);
+    
+    for (auto& ttt : h) // access by reference to avoid copying
+    {
+        printf("h -----> %d\n", ttt);
+    }
+    
     if (outLen == 512)
         return h;
     else {
-        byte[] h256 = new byte[32];
-        Array.Copy(h, 0, h256, 0, 32);
+        std::vector<byte> h256;
+        h256.resize(32);
+        byte_vector_copy(h, 0, h256, 0, 32);    
         return h256;
     }
-
-}
- *     */
-
-    return std::vector<byte>();
 }
