@@ -115,15 +115,14 @@ HashGOST::~HashGOST()
 {
 }
 
+#include <stdio.h>
+
 std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
 {
-    std::vector<byte> paddedMes;
-    paddedMes.reserve(64);
-
     int len = message.size() * 8;
 
     std::vector<byte> h;
-    h.reserve(64);
+    h.resize(64);
 
     for (int i = 0; i < 64; i++) {
         h[i] = iv[i];
@@ -154,6 +153,7 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
 
     int inc = 0;
     while (len >= 512) {
+        /*
         inc++;
 
         std::vector<byte> tempMes;
@@ -172,21 +172,54 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
         // N = AddModulo512(Nt, N_512.Reverse().ToArray());
         // Sigma = AddModulo512(Sigma, tempMes);
         // len -= 512;
+         */
     }
 
-    /*
-    byte[] message1 = new byte[message.Length - inc * 64];
+    printf("inc -> %d\n", inc);
 
-    Array.Copy(message, 0, message1, 0, message.Length - inc * 64);
-    if (message1.Length < 64) {
-        for (int i = 0; i < (64 - message1.Length - 1); i++) {
+    std::vector<byte> paddedMes;
+    paddedMes.resize(64);
+
+    int ms = message.size() - inc * 64;
+    std::vector<byte> message1;
+    message1.resize(ms);
+
+    byte_vector_copy(message, 0, message1, 0, ms);
+
+    if (message1.size() < 64) {
+        for (int i = 0; i < (64 - message1.size() - 1); i++) {
             paddedMes[i] = 0;
         }
-        paddedMes[64 - message1.Length - 1] = 0x01;
-        Array.Copy(message1, 0, paddedMes, 64 - message1.Length, message1.Length);
+
+        paddedMes[64 - message1.size() - 1] = 0x01;
+        byte_vector_copy(message1, 0, paddedMes, 64 - message1.size(), message1.size());
     }
 
-    h = G_n(N, h, paddedMes);
+    std::vector<byte> Nt;
+    Nt.assign(N, N + 64);
+
+    printf("test \n");
+
+    h = G_n(Nt, h, paddedMes);
+    
+        for (auto& ttt : h) // access by reference to avoid copying
+    {
+        printf("h -----> %d\n", ttt);
+    }
+
+    std::vector<byte> MesLen;
+    MesLen.resize(4);
+    for (int i = 0; i < 4; i++) {
+        int k = message1.size() * 8;
+        MesLen[i] = (unsigned char)((k >> (8 * i)) & 0xFF);
+    }
+    
+    std::reverse(std::begin(MesLen), std::end(MesLen));  
+    
+    Nt = AddModulo512(Nt, MesLen);
+    
+
+    /*
     byte[] MesLen = BitConverter.GetBytes(message1.Length * 8);
     N = AddModulo512(N, MesLen.Reverse().ToArray());
     Sigma = AddModulo512(Sigma, paddedMes);

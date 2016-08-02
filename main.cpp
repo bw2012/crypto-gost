@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "BigInteger.h"
+#include "HashGOST.h"
 
 int char2int(char input)
 {
@@ -65,15 +66,18 @@ int main(int argc, char** argv)
 
     std::string test = "test";
 
-    std::vector<char> bytes(test.begin(), test.end());
+    std::vector<unsigned char> bytes(test.begin(), test.end());
     for (auto& ttt : bytes) // access by reference to avoid copying
     {
-        printf("-----> %d\n", ttt);
+        printf("test message -----> %d\n", ttt);
     }
+    
+    HashGOST hash(256);
+    hash.GetHash(bytes);
 
-    std::vector<int> test1;
-    test1.reserve(20000);
-    test1[10] = 10;
+    //std::vector<int> test1;
+    //test1.reserve(20000);
+    //test1[10] = 10;
 
 
     return 0;

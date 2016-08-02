@@ -7,7 +7,10 @@
 typedef unsigned char byte;
 typedef unsigned long ulong;
 
-void byte_vector_copy(std::vector<byte> source, int source_pos, std::vector<byte> target, int target_pos, int count)
+#include <stdio.h>
+
+
+static void byte_vector_copy(const std::vector<byte>& source, int source_pos, std::vector<byte>& target, int target_pos, int count)
 {
     for (auto aaa = 0; aaa < count; aaa++) {
         target[target_pos + aaa] = source[source_pos + aaa];
@@ -38,15 +41,18 @@ private:
     std::vector<byte> AddModulo512(std::vector<byte> a, std::vector<byte> b)
     {
         std::vector<byte> result;
-        result.reserve(64);
+        result.resize(64);
 
-        std::vector<byte> tempA = a;
-        std::vector<byte> tempB = b;
+        std::vector<byte> tempA;
+        tempA.resize(64);
+        
+        std::vector<byte> tempB;
+        tempB.resize(64);
 
         int i = 0, t = 0;
 
-        // Array.Copy(a, 0, tempA, 64 - a.Length, a.Length);
-        // Array.Copy(b, 0, tempB, 64 - b.Length, b.Length);
+        byte_vector_copy(a, 0, tempA, 64 - a.size(), a.size());
+        byte_vector_copy(b, 0, tempB, 64 - b.size(), b.size());
 
         for (i = 63; i >= 0; i--) {
             t = tempA[i] + tempB[i] + (t >> 8);
@@ -59,7 +65,7 @@ private:
     std::vector<byte> AddXor512(std::vector<byte> a, std::vector<byte> b)
     {
         std::vector<byte> result;
-        result.reserve(64);
+        result.resize(64);
 
         for (int i = 0; i < 64; i++)
             result[i] = (byte)(a[i] ^ b[i]);
@@ -69,7 +75,7 @@ private:
     std::vector<byte> S(std::vector<byte> state)
     {
         std::vector<byte> result;
-        result.reserve(64);
+        result.resize(64);
 
         for (int i = 0; i < 64; i++) {
             result[i] = Sbox[state[i]];
@@ -80,7 +86,7 @@ private:
     std::vector<byte> P(std::vector<byte> state)
     {
         std::vector<byte> result;
-        result.reserve(64);
+        result.resize(64);
 
         for (int i = 0; i < 64; i++) {
             result[i] = state[Tau[i]];
@@ -91,7 +97,7 @@ private:
     std::vector<byte> L(std::vector<byte> state)
     {
         std::vector<byte> result;
-        result.reserve(64);
+        result.resize(64);
 
         unsigned long long v = 0;
         int i = 0, j = 0, k = 0;
@@ -144,10 +150,13 @@ private:
         K = S(K);
         K = P(K);
         K = L(K);
+        
         std::vector<byte> t = E(K, m);
         t = AddXor512(t, h);
+        
         std::vector<byte> newh = AddXor512(t, m);
         return newh;
+        //return std::vector<byte>();
     }
 };
 
