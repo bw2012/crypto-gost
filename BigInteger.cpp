@@ -91,14 +91,8 @@ BigInteger::BigInteger(uint inData[], int Length)
         dataLength--;
 }
 
-#include <algorithm>
-
 BigInteger::BigInteger(const std::string& value, int radix)
 {
-    // std::string value = value_;
-
-    // std::transform(value.begin(), value.end(), value.begin(), ::toupper);
-
     BigInteger multiplier(1);
     BigInteger result;
     int limit = 0;
@@ -150,44 +144,18 @@ BigInteger::BigInteger(const std::string& value, int radix)
     dataLength = result.dataLength;
 }
 
-BigInteger BigInteger::operator-() const
+BigInteger::BigInteger(const BigInteger& bi)
 {
-
-    BigInteger bi1 = *this;
-
-    if (bi1.dataLength == 1 && bi1.data[0] == 0)
-        return BigInteger();
-
-    BigInteger result(bi1);
-
-    // 1's complement
     for (int i = 0; i < maxLength; i++)
-        result.data[i] = (uint)(~(bi1.data[i]));
+        data[i] = 0;
 
-    // add one to result of 1's complement
-    long val, carry = 1;
-    int index = 0;
+    dataLength = bi.dataLength;
 
-    while (carry != 0 && index < maxLength) {
-        val = (long)(result.data[index]);
-        val++;
-
-        result.data[index] = (uint)(val & 0xFFFFFFFF);
-        carry = val >> 32;
-
-        index++;
-    }
-
-    if ((bi1.data[maxLength - 1] & 0x80000000) == (result.data[maxLength - 1] & 0x80000000)) {
-        // throw(new ArithmeticException("Overflow in negation.\n"));
-    }
-
-    result.dataLength = maxLength;
-
-    while (result.dataLength > 1 && result.data[result.dataLength - 1] == 0)
-        result.dataLength--;
-    return result;
+    for (int i = 0; i < dataLength; i++)
+        data[i] = bi.data[i];
 }
+
+//==========================================================================================================
 
 std::string BigInteger::ToString() const
 {
@@ -296,6 +264,45 @@ void BigInteger::singleByteDivide(const BigInteger& bi1,
 
     while (outRemainder.dataLength > 1 && outRemainder.data[outRemainder.dataLength - 1] == 0)
         outRemainder.dataLength--;
+}
+
+BigInteger BigInteger::operator-() const
+{
+
+    BigInteger bi1 = *this;
+
+    if (bi1.dataLength == 1 && bi1.data[0] == 0)
+        return BigInteger();
+
+    BigInteger result(bi1);
+
+    // 1's complement
+    for (int i = 0; i < maxLength; i++)
+        result.data[i] = (uint)(~(bi1.data[i]));
+
+    // add one to result of 1's complement
+    long val, carry = 1;
+    int index = 0;
+
+    while (carry != 0 && index < maxLength) {
+        val = (long)(result.data[index]);
+        val++;
+
+        result.data[index] = (uint)(val & 0xFFFFFFFF);
+        carry = val >> 32;
+
+        index++;
+    }
+
+    if ((bi1.data[maxLength - 1] & 0x80000000) == (result.data[maxLength - 1] & 0x80000000)) {
+        // throw(new ArithmeticException("Overflow in negation.\n"));
+    }
+
+    result.dataLength = maxLength;
+
+    while (result.dataLength > 1 && result.data[result.dataLength - 1] == 0)
+        result.dataLength--;
+    return result;
 }
 
 BigInteger BigInteger::operator-(const BigInteger& bi2) const
@@ -852,7 +859,7 @@ void BigInteger::genRandomBits(int bits)
         // throw(new ArithmeticException("Number of required bits > maxLength."));
     }
 
-    for (int i = 0; i < dwords; i++){
+    for (int i = 0; i < dwords; i++) {
         double RandomDouble = (double)std::rand() / RAND_MAX;
         data[i] = (uint)(RandomDouble * 0x100000000);
     }
@@ -873,4 +880,282 @@ void BigInteger::genRandomBits(int bits)
 
     if (dataLength == 0)
         dataLength = 1;
+}
+
+//***********************************************************************
+// Overloading of bitwise AND operator
+//***********************************************************************
+BigInteger BigInteger::operator&(const BigInteger& bi2) const
+{
+    BigInteger bi1 = *this;
+    BigInteger result;
+
+    int len = (bi1.dataLength > bi2.dataLength) ? bi1.dataLength : bi2.dataLength;
+
+    for (int i = 0; i < len; i++) {
+        uint sum = (uint)(bi1.data[i] & bi2.data[i]);
+        result.data[i] = sum;
+    }
+
+    result.dataLength = maxLength;
+
+    while (result.dataLength > 1 && result.data[result.dataLength - 1] == 0)
+        result.dataLength--;
+
+    return result;
+}
+
+//***********************************************************************
+// Overloading of the unary ++ operator
+//***********************************************************************
+/*
+BigInteger BigInteger::operator++() const
+{
+    BigInteger bi1 = *this;
+    BigInteger result = *this;
+
+    long val, carry = 1;
+    int index = 0;
+
+    while (carry != 0 && index < maxLength) {
+        val = (long)(result.data[index]);
+        val++;
+
+        result.data[index] = (uint)(val & 0xFFFFFFFF);
+        carry = val >> 32;
+
+        index++;
+    }
+
+    if (index > result.dataLength)
+        result.dataLength = index;
+    else {
+        while (result.dataLength > 1 && result.data[result.dataLength - 1] == 0)
+            result.dataLength--;
+    }
+
+    // overflow check
+    int lastPos = maxLength - 1;
+
+    // overflow if initial value was +ve but ++ caused a sign
+    // change to negative.
+
+    if ((bi1.data[lastPos] & 0x80000000) == 0 &&
+        (result.data[lastPos] & 0x80000000) != (bi1.data[lastPos] & 0x80000000)) {
+        //throw(new ArithmeticException("Overflow in ++."));
+    }
+    return result;
+}
+*/
+
+//***********************************************************************
+// Overloading of unary >> operators
+//***********************************************************************
+BigInteger BigInteger::operator>>(int shiftVal) const
+{
+    BigInteger bi1 = *this;
+    BigInteger result = bi1;
+    result.dataLength = shiftRight(result.data, shiftVal, result.dataLength);
+
+    if ((bi1.data[maxLength - 1] & 0x80000000) != 0) // negative
+    {
+        for (int i = maxLength - 1; i >= result.dataLength; i--)
+            result.data[i] = 0xFFFFFFFF;
+
+        uint mask = 0x80000000;
+        for (int i = 0; i < 32; i++) {
+            if ((result.data[result.dataLength - 1] & mask) != 0)
+                break;
+
+            result.data[result.dataLength - 1] |= mask;
+            mask >>= 1;
+        }
+        result.dataLength = maxLength;
+    }
+
+    return result;
+}
+
+//***********************************************************************
+// Modulo Exponentiation
+//***********************************************************************
+
+BigInteger BigInteger::modPow(const BigInteger& exp, const BigInteger& n_) const
+{
+    BigInteger n = n_;
+
+    if ((exp.data[maxLength - 1] & 0x80000000) != 0) {
+        // throw(new ArithmeticException("Positive exponents only."));
+    }
+
+    BigInteger resultNum = 1;
+    BigInteger tempNum;
+
+    bool thisNegative = false;
+
+    if ((this->data[maxLength - 1] & 0x80000000) != 0) // negative this
+    {
+        tempNum = -(*this) % n;
+        thisNegative = true;
+    } else
+        tempNum = *this % n; // ensures (tempNum * tempNum) < b^(2k)
+
+    if ((n.data[maxLength - 1] & 0x80000000) != 0) // negative n
+        n = -n;
+
+    // calculate constant = b^(2k) / m
+    BigInteger constant;
+
+    int i = n.dataLength << 1;
+    constant.data[i] = 0x00000001;
+    constant.dataLength = i + 1;
+
+    constant = constant / n;
+    int totalBits = exp.bitCount();
+    int count = 0;
+
+    // perform squaring and multiply exponentiation
+    for (int pos = 0; pos < exp.dataLength; pos++) {
+        uint mask = 0x01;
+        // Console.WriteLine("pos = " + pos);
+
+        for (int index = 0; index < 32; index++) {
+            if ((exp.data[pos] & mask) != 0)
+                resultNum = BarrettReduction(resultNum * tempNum, n, constant);
+
+            mask <<= 1;
+
+            tempNum = BarrettReduction(tempNum * tempNum, n, constant);
+
+            if (tempNum.dataLength == 1 && tempNum.data[0] == 1) {
+                if (thisNegative && (exp.data[0] & 0x1) != 0) // odd exp
+                    return -resultNum;
+                return resultNum;
+            }
+            count++;
+            if (count == totalBits)
+                break;
+        }
+    }
+
+    if (thisNegative && (exp.data[0] & 0x1) != 0) // odd exp
+        return -resultNum;
+
+    return resultNum;
+}
+
+//***********************************************************************
+// Returns the position of the most significant bit in the BigInteger.
+//
+// Eg.  The result is 0, if the value of BigInteger is 0...0000 0000
+//      The result is 1, if the value of BigInteger is 0...0000 0001
+//      The result is 2, if the value of BigInteger is 0...0000 0010
+//      The result is 2, if the value of BigInteger is 0...0000 0011
+//
+//***********************************************************************
+
+int BigInteger::bitCount() const
+{
+    BigInteger bi = *this;
+
+    while (bi.dataLength > 1 && bi.data[bi.dataLength - 1] == 0)
+        bi.dataLength--;
+
+    uint value = bi.data[bi.dataLength - 1];
+    uint mask = 0x80000000;
+    int bits = 32;
+
+    while (bits > 0 && (value & mask) == 0) {
+        bits--;
+        mask >>= 1;
+    }
+    bits += ((bi.dataLength - 1) << 5);
+
+    return bits;
+}
+
+//***********************************************************************
+// Fast calculation of modular reduction using Barrett's reduction.
+// Requires x < b^(2k), where b is the base.  In this case, base is
+// 2^32 (uint).
+//
+// Reference [4]
+//***********************************************************************
+
+BigInteger BigInteger::BarrettReduction(const BigInteger& x, const BigInteger& n, const BigInteger& constant) const
+{
+    int k = n.dataLength, kPlusOne = k + 1, kMinusOne = k - 1;
+
+    BigInteger q1;
+
+    // q1 = x / b^(k-1)
+    for (int i = kMinusOne, j = 0; i < x.dataLength; i++, j++)
+        q1.data[j] = x.data[i];
+    q1.dataLength = x.dataLength - kMinusOne;
+    if (q1.dataLength <= 0)
+        q1.dataLength = 1;
+
+    BigInteger q2 = q1 * constant;
+    BigInteger q3;
+
+    // q3 = q2 / b^(k+1)
+    for (int i = kPlusOne, j = 0; i < q2.dataLength; i++, j++)
+        q3.data[j] = q2.data[i];
+    q3.dataLength = q2.dataLength - kPlusOne;
+    if (q3.dataLength <= 0)
+        q3.dataLength = 1;
+
+    // r1 = x mod b^(k+1)
+    // i.e. keep the lowest (k+1) words
+    BigInteger r1;
+    int lengthToCopy = (x.dataLength > kPlusOne) ? kPlusOne : x.dataLength;
+    for (int i = 0; i < lengthToCopy; i++)
+        r1.data[i] = x.data[i];
+    r1.dataLength = lengthToCopy;
+
+    // r2 = (q3 * n) mod b^(k+1)
+    // partial multiplication of q3 and n
+
+    BigInteger r2;
+    for (int i = 0; i < q3.dataLength; i++) {
+        if (q3.data[i] == 0)
+            continue;
+
+        ulong mcarry = 0;
+        int t = i;
+        for (int j = 0; j < n.dataLength && t < kPlusOne; j++, t++) {
+            // t = i + j
+            ulong val = ((ulong)q3.data[i] * (ulong)n.data[j]) + (ulong)r2.data[t] + mcarry;
+
+            r2.data[t] = (uint)(val & 0xFFFFFFFF);
+            mcarry = (val >> 32);
+        }
+
+        if (t < kPlusOne)
+            r2.data[t] = (uint)mcarry;
+    }
+
+    r2.dataLength = kPlusOne;
+    while (r2.dataLength > 1 && r2.data[r2.dataLength - 1] == 0)
+        r2.dataLength--;
+
+    r1 -= r2;
+    if ((r1.data[maxLength - 1] & 0x80000000) != 0) // negative
+    {
+        BigInteger val;
+        val.data[kPlusOne] = 0x00000001;
+        val.dataLength = kPlusOne + 1;
+        r1 += val;
+    }
+
+    while (r1 >= n)
+        r1 -= n;
+
+    return r1;
+}
+
+bool BigInteger::operator>=(const BigInteger& bi2) const
+{
+    BigInteger bi1 = *this;
+    return (bi1 == bi2 || bi1 > bi2);
 }

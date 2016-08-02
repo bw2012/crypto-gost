@@ -19,6 +19,12 @@ public:
     ~DSGost();
     
     BigInteger GenPrivateKey(int BitSize);
+    
+private:
+    ECPoint GenPublicKey(BigInteger d);
+    ECPoint GDecompression();
+    BigInteger ModSqrt(const BigInteger& a, const BigInteger& q);
+    BigInteger Legendre(const BigInteger& a, const BigInteger& q);
 };
 
 #endif // DSGOST_H

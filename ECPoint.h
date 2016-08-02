@@ -14,7 +14,7 @@ public:
 
     ECPoint operator+(const ECPoint& p2) const;
     ECPoint Double() const;
-    ECPoint Multiple(const BigInteger& x) const;
+    ECPoint Multiply(const BigInteger& x) const;
 
     ECPoint(const ECPoint& p);
     ECPoint();

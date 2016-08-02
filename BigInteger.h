@@ -16,8 +16,11 @@ public:
     BigInteger(byte inData[], int Length);
     BigInteger(uint inData[], int Length);
     BigInteger(const std::string& value, int radix);
+    BigInteger(const BigInteger& bi);
     
     BigInteger operator-() const;
+    
+    //BigInteger operator++() const;
     
     BigInteger operator-(const BigInteger& bi2) const;
     BigInteger operator+(const BigInteger& bi2) const;
@@ -25,15 +28,20 @@ public:
     BigInteger operator%(const BigInteger& bi2) const;
     BigInteger operator/(const BigInteger& bi2) const;
     BigInteger operator<<(int shiftVal) const;
+    BigInteger operator>>(int shiftVal) const;
     
     BigInteger operator+=(const BigInteger& bi2) const;
     BigInteger operator-=(const BigInteger& bi2) const;
     
     bool operator<(const BigInteger& bi2) const;
+    
     bool operator>(const BigInteger& bi2) const;
+    bool operator>=(const BigInteger& bi2) const;
     
     bool operator==(const BigInteger& bi2) const;
     bool operator!=(const BigInteger& bi2) const;
+    
+    BigInteger operator&(const BigInteger& bi2) const;
 
     BigInteger modInverse(const BigInteger& modulus) const;
     
@@ -41,6 +49,8 @@ public:
     std::string ToString(int radix) const;
     
     void genRandomBits(int bits);
+    
+    BigInteger modPow(const BigInteger& exp, const BigInteger& n) const;
     
     ~BigInteger();
 
@@ -59,6 +69,10 @@ private:
     static int shiftRight(uint buffer[], int shiftVal, int Length);
     
     bool Equals(const BigInteger& bi) const;
+    
+    int bitCount() const;
+    
+    BigInteger BarrettReduction(const BigInteger& x, const BigInteger& n, const BigInteger& constant) const;
 
 };
 

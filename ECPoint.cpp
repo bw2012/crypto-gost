@@ -57,7 +57,7 @@ ECPoint ECPoint::operator+(const ECPoint& p2) const
     return p3;
 }
 
-ECPoint ECPoint::Multiple(const BigInteger& m) const
+ECPoint ECPoint::Multiply(const BigInteger& m) const
 {
     ECPoint p = *this;
     BigInteger x = m;
