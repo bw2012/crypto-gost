@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 typedef unsigned int uint;
-typedef char byte;
+typedef unsigned char byte;
 
 class BigInteger {
     

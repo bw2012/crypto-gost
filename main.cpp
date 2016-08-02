@@ -24,7 +24,7 @@ std::vector<byte> FromHexStringToByte(std::string input)
         unsigned char temp = char2int(HexByte[0]) * 16 + char2int(HexByte[1]);
         data.push_back(temp);
     }
-    
+
     return data;
 }
 
@@ -61,13 +61,20 @@ int main(int argc, char** argv)
     BigInteger n("ffffffffffffffffffffffff99def836146bc9b1b4d22831", 16);
     printf("---> %s\n", n.ToString(16).c_str());
 
-    
     std::vector<byte> xG = FromHexStringToByte("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012");
 
-    for (auto& ttt : xG) // access by reference to avoid copying
+    std::string test = "test";
+
+    std::vector<char> bytes(test.begin(), test.end());
+    for (auto& ttt : bytes) // access by reference to avoid copying
     {
-        //sprintf("-----> %d\n", ttt);
+        printf("-----> %d\n", ttt);
     }
+
+    std::vector<int> test1;
+    test1.reserve(20000);
+    test1[10] = 10;
+
 
     return 0;
 }
