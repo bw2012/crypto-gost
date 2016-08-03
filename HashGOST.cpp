@@ -122,16 +122,11 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
     int len = message.size() * 8;
 
     barr64 h;
+    h.fill(0);
 
-    for (int i = 0; i < 64; i++) {
-        h[i] = iv[i];
-    }
+    barr64 N_0;
+    N_0.fill(0);
 
-    byte N_0[64];
-
-    for (int i = 0; i < 64; i++) {
-        N_0[i] = 0;
-    }
 
     if (outLen == 512) {
         for (int i = 0; i < 64; i++) {
@@ -147,37 +142,25 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
         }
     }
 
-    // byte[] N_512 = BitConverter.GetBytes(512);
-    byte N_512[4] = { 0, 2, 0, 0 };
+    byte N_512[4] = { 0, 0, 2, 0 };
+    std::vector<byte> N_512v (N_512, N_512 + 4 );
 
     int inc = 0;
     while (len >= 512) {
-        /*
+        
         inc++;
 
-        std::vector<byte> tempMes;
-        tempMes.reserve(64);
-
+        barr64 tempMes;
         byte_vector_copy(message, message.size() - inc * 64, tempMes, 0, 64);
 
-        std::vector<byte> Nt;
-        Nt.assign(N, N + 64);
+        h = G_n(N, h, tempMes);
 
-        h = G_n(Nt, h, tempMes);
-
-        std::vector<byte> N_512t;
-        Nt.assign(N_512, N_512 + 4);
-
-        // N = AddModulo512(Nt, N_512.Reverse().ToArray());
-        // Sigma = AddModulo512(Sigma, tempMes);
-        // len -= 512;
-         */
+        N = AddModulo512(N, N_512v);
+        Sigma = AddModulo512(Sigma, tempMes);
+        len -= 512;
     }
 
-    printf("inc -> %d\n", inc);
-
-    std::vector<byte> paddedMes;
-    paddedMes.resize(64);
+    barr64 paddedMes;
 
     int ms = message.size() - inc * 64;
     std::vector<byte> message1;
@@ -195,36 +178,33 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
     }
 
     h = G_n(N, h, paddedMes);
-    
+
     std::vector<byte> MesLen;
     MesLen.resize(4);
     for (int i = 0; i < 4; i++) {
         int k = message1.size() * 8;
         MesLen[i] = (unsigned char)((k >> (8 * i)) & 0xFF);
     }
-    
-    std::reverse(std::begin(MesLen), std::end(MesLen));  
-    
+
+    std::reverse(std::begin(MesLen), std::end(MesLen));
+
     N = AddModulo512(N, MesLen);
-    
     Sigma = AddModulo512(Sigma, paddedMes);
-    
-    std::vector<byte> N_0t;
-    N_0t.assign(N_0, N_0 + 64);
-    h = G_n(N_0t, h, Nt);
-    h = G_n(N_0t, h, Sigmat);
-    
-    for (auto& ttt : h) // access by reference to avoid copying
-    {
-        printf("h -----> %d\n", ttt);
+
+    h = G_n(N_0, h, N);
+    h = G_n(N_0, h, Sigma);
+
+    std::vector<byte> res;
+    for (byte b : h) {
+        res.push_back(b);
     }
-    
+
     if (outLen == 512)
-        return h;
+        return res;
     else {
         std::vector<byte> h256;
         h256.resize(32);
-        byte_vector_copy(h, 0, h256, 0, 32);    
+        byte_vector_copy(res, 0, h256, 0, 32);
         return h256;
     }
 }

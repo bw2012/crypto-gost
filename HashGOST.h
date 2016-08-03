@@ -12,8 +12,8 @@ typedef std::array<byte, 64> barr64;
 
 #include <stdio.h>
 
-
-static void byte_vector_copy(const std::vector<byte>& source, int source_pos, std::vector<byte>& target, int target_pos, int count)
+static void
+byte_vector_copy(const std::vector<byte>& source, int source_pos, std::vector<byte>& target, int target_pos, int count)
 {
     for (auto aaa = 0; aaa < count; aaa++) {
         target[target_pos + aaa] = source[source_pos + aaa];
@@ -40,7 +40,7 @@ class HashGOST
 public:
     HashGOST(int outputLenght);
     ~HashGOST();
-    
+
     std::vector<byte> GetHash(std::vector<byte> message);
 
 private:
@@ -55,11 +55,26 @@ private:
     const static byte Tau[];
     const static byte C[12][64];
 
+    barr64 AddModulo512(barr64 a, barr64 b)
+    {
+        barr64 result;
+
+        int i = 0, t = 0;
+        for (i = 63; i >= 0; i--) {
+            t = a[i] + b[i] + (t >> 8);
+            result[i] = (unsigned char)(t & 0xFF);
+        }
+
+        return result;
+    }
+
     barr64 AddModulo512(barr64 a, std::vector<byte> b)
     {
         barr64 result;
         barr64 tempA;
         barr64 tempB;
+
+        tempB.fill(0);
 
         int i = 0, t = 0;
 
@@ -128,8 +143,9 @@ private:
     {
         const byte* Ci = C[i];
         barr64 ci;
-        for(i=0; i<64; i++) ci[i] = Ci[i];
-        //ci.assign(Ci, Ci + 64);
+        for (i = 0; i < 64; i++)
+            ci[i] = Ci[i];
+        // ci.assign(Ci, Ci + 64);
 
         barr64 k = AddXor512(K, ci);
         k = S(k);
@@ -157,10 +173,10 @@ private:
         K = S(K);
         K = P(K);
         K = L(K);
-        
+
         barr64 t = E(K, m);
         t = AddXor512(t, h);
-        
+
         return AddXor512(t, m);
     }
 };
