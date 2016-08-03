@@ -31,50 +31,41 @@ std::vector<byte> FromHexStringToByte(std::string input)
 
 int main(int argc, char** argv)
 {
-
-    printf("test\n");
-    /*
-    BigInteger a1(100);
-    BigInteger a2(20000);
-    BigInteger a3(300);
-
-    printf("a1  a2 ---> %s %s\n", a1.ToString().c_str(), a2.ToString().c_str());
-    //printf("a1 + a2 ---> %s \n", (a1 + a2).ToString().c_str());
-    //printf("a1 - a2 ---> %s \n", (a1 - a2).ToString().c_str());
-    //printf("a1 -= a2 ---> %s \n", (a1 -= a2).ToString().c_str());
-    //printf("a1 += a2 ---> %s \n", (a1 += a2).ToString().c_str());
-    //printf("a1 * a2 ---> %s \n", (a1 * a2).ToString().c_str());
-    printf("a2 %% a3 ---> %s \n", (a2 % a3).ToString().c_str());
-    printf("a2  a3 ---> %s %s\n", a2.ToString().c_str(), a3.ToString().c_str());
-
-    printf("a2 / a1 ---> %s \n", (a2 / a1).ToString().c_str());
-    printf("a1  a2 ---> %s %s\n", a1.ToString().c_str(), a2.ToString().c_str());
-    */
     BigInteger p("6277101735386680763835789423207666416083908700390324961279", 10);
-    printf("---> %s\n", p.ToString().c_str());
+    printf("p  ---> %s\n", p.ToString().c_str());
 
     BigInteger a("-3", 10);
-    printf("---> %s\n", a.ToString().c_str());
+    printf("a  ---> %s\n", a.ToString().c_str());
 
     BigInteger b("64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1", 16);
-    printf("---> %s\n", b.ToString(16).c_str());
+    printf("b  ---> %s\n", b.ToString(16).c_str());
 
     BigInteger n("ffffffffffffffffffffffff99def836146bc9b1b4d22831", 16);
-    printf("---> %s\n", n.ToString(16).c_str());
+    printf("n  ---> %s\n", n.ToString(16).c_str());
 
-    std::vector<byte> xG = FromHexStringToByte("03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012");
-
+    std::string xGs = "03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012";
+    std::vector<byte> xG = FromHexStringToByte(xGs);
+    printf("xG ---> %s\n", xGs.c_str());
+    
     std::string test = "test";
     std::vector<unsigned char> bytes(test.begin(), test.end());
    
     HashGOST hash(256);
     std::vector<unsigned char> hash_test = hash.GetHash(bytes);
     
-
-    for (auto& ttt : hash_test) // access by reference to avoid copying
+    std::string hres = "";
+    for (auto ttt : hash_test)
     {
-        printf("hash_test -----> %d\n", ttt);
+        //printf("hash_test -----> %d\n", ttt);
+        char tmp[2];
+        sprintf(tmp, "%02x", ttt);
+        hres += tmp;
     }
+    
+    printf("\n");
+    printf("HASH ---> %s\n", hres.c_str());
+    
+    
 
     return 0;
 }

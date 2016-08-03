@@ -111,12 +111,16 @@ HashGOST::~HashGOST()
 {
 }
 
+#include<stdio.h>
+
 std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
 {
     int len = message.size() * 8;
 
     barr64 h;
-    h.fill(0);
+    for (int i = 0; i < 64; i++) {
+        h[i] = iv[i];
+    }
 
     barr64 N_0;
     N_0.fill(0);
@@ -136,6 +140,7 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
     }
 
     barr64 paddedMes;
+    paddedMes.fill(0);
 
     int ms = message.size() - inc * 64;
     std::vector<byte> message1;
@@ -151,7 +156,7 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
         paddedMes[64 - message1.size() - 1] = 0x01;
         byte_vector_copy(message1, 0, paddedMes, 64 - message1.size(), message1.size());
     }
-
+    
     h = G_n(N, h, paddedMes);
 
     std::vector<byte> MesLen;
