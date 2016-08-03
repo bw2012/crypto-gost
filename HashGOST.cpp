@@ -95,18 +95,14 @@ const byte HashGOST::C[12][64] = {
 HashGOST::HashGOST(int outputLenght)
 {
     if (outputLenght == 512) {
-        for (int i = 0; i < 64; i++) {
-            N[i] = 0x00;
-            Sigma[i] = 0x00;
-            iv[i] = 0x00;
-        }
+        N.fill(0x00);
+        Sigma.fill(0x00);
+        iv.fill(0x00);
         outLen = 512;
     } else if (outputLenght == 256) {
-        for (int i = 0; i < 64; i++) {
-            N[i] = 0x00;
-            Sigma[i] = 0x00;
-            iv[i] = 0x01;
-        }
+        N.fill(0x00);
+        Sigma.fill(0x00);
+        iv.fill(0x01);
         outLen = 256;
     }
 }
@@ -114,8 +110,6 @@ HashGOST::HashGOST(int outputLenght)
 HashGOST::~HashGOST()
 {
 }
-
-#include <stdio.h>
 
 std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
 {
@@ -127,34 +121,15 @@ std::vector<byte> HashGOST::GetHash(std::vector<byte> message)
     barr64 N_0;
     N_0.fill(0);
 
-
-    if (outLen == 512) {
-        for (int i = 0; i < 64; i++) {
-            N[i] = 0x00;
-            Sigma[i] = 0x00;
-            iv[i] = 0x00;
-        }
-    } else if (outLen == 256) {
-        for (int i = 0; i < 64; i++) {
-            N[i] = 0x00;
-            Sigma[i] = 0x00;
-            iv[i] = 0x01;
-        }
-    }
-
     byte N_512[4] = { 0, 0, 2, 0 };
-    std::vector<byte> N_512v (N_512, N_512 + 4 );
+    std::vector<byte> N_512v(N_512, N_512 + 4);
 
     int inc = 0;
     while (len >= 512) {
-        
         inc++;
-
         barr64 tempMes;
         byte_vector_copy(message, message.size() - inc * 64, tempMes, 0, 64);
-
         h = G_n(N, h, tempMes);
-
         N = AddModulo512(N, N_512v);
         Sigma = AddModulo512(Sigma, tempMes);
         len -= 512;
