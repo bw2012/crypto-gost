@@ -77,7 +77,7 @@ int main(int argc, char** argv)
     d = BigInteger("4251051025949052349187729432179324385897356673788666960178", 10);
 
     ECPoint Q = DS.GenPublicKey(d);
-    
+       
     printf("\n\npublic key\n");
     printf("a  ---> %s\n", Q.a.ToString().c_str());
     printf("b  ---> %s\n", Q.b.ToString().c_str());
@@ -88,8 +88,6 @@ int main(int argc, char** argv)
     std::string sign = DS.SingGen(bytes, d);
     printf("\n\n\n");
     printf("Sign --> %s\n", sign.c_str());
-    
-    exit(0);
 
     bool result = DS.SingVer(bytes, sign, Q);
 

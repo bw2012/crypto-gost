@@ -27,6 +27,7 @@ ECPoint DSGost::GenPublicKey(BigInteger d)
 {
     ECPoint G = GDecompression();
     
+    /*
     printf("Ga  ---> %s\n", G.a.ToString().c_str());
     printf("Gb  ---> %s\n", G.b.ToString().c_str());
     printf("GFieldChar  ---> %s\n", G.FieldChar.ToString().c_str());
@@ -34,14 +35,17 @@ ECPoint DSGost::GenPublicKey(BigInteger d)
     printf("Gy  ---> %s\n", G.y.ToString().c_str());
     printf("------------------------------------------------\n");
     printf("d  ---> %s\n", d.ToString().c_str());
+     */
     
     ECPoint Q = G.Multiply(d);
     
+    /*
     printf("Qa  ---> %s\n", Q.a.ToString().c_str());
     printf("Qb  ---> %s\n", Q.b.ToString().c_str());
     printf("QFieldChar  ---> %s\n", Q.FieldChar.ToString().c_str());
     printf("Qx  ---> %s\n", Q.x.ToString().c_str());
     printf("Qy  ---> %s\n", Q.y.ToString().c_str());
+     */
     
     
     return Q;
@@ -96,7 +100,7 @@ BigInteger DSGost::ModSqrt(const BigInteger& a, const BigInteger& q)
     BigInteger t = q - 1;
 
     while ((t & 1) != 1) {
-        s += 1;
+        s = s + 1;
         t = t >> 1;
     }
 

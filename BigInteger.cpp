@@ -217,6 +217,10 @@ void BigInteger::singleByteDivide(const BigInteger& bi1,
                                   BigInteger& outRemainder)
 {
     uint result[maxLength];
+    for(auto i = 0; i < maxLength; i++){
+        result[i] = 0;
+    }
+    
     int resultPos = 0;
 
     // copy dividend to reminder
@@ -415,12 +419,14 @@ BigInteger BigInteger::operator-=(const BigInteger& bi2) const
     return *this - bi2;
 }
 
+
+#include<stdio.h>
 BigInteger BigInteger::modInverse(const BigInteger& modulus) const
 {
     BigInteger p[2] = { BigInteger(0), BigInteger(1) };
-    BigInteger* q = new BigInteger[2];                  // quotients
+    BigInteger q[2]; 
     BigInteger r[2] = { BigInteger(0), BigInteger(0) }; // remainders
-
+    
     int step = 0;
 
     BigInteger a = modulus;
@@ -440,6 +446,9 @@ BigInteger BigInteger::modInverse(const BigInteger& modulus) const
             singleByteDivide(a, b, quotient, remainder);
         else
             multiByteDivide(a, b, quotient, remainder);
+            
+        //printf("quotient  ---> %s\n", quotient.ToString().c_str());
+        //printf("remainder  ---> %s\n", remainder.ToString().c_str());
 
         q[0] = q[1];
         r[0] = r[1];
@@ -452,14 +461,15 @@ BigInteger BigInteger::modInverse(const BigInteger& modulus) const
         step++;
     }
 
+
     if (r[0].dataLength > 1 || (r[0].dataLength == 1 && r[0].data[0] != 1)) {
         // throw(new ArithmeticException("No inverse!"));
     }
 
     BigInteger result = ((p[0] - (p[1] * q[0])) % modulus);
-
+    
     if ((result.data[maxLength - 1] & 0x80000000) != 0)
-        result += modulus; // get the least positive modulus
+        result = result + modulus; // get the least positive modulus
 
     return result;
 }
@@ -660,7 +670,7 @@ void BigInteger::multiByteDivide(const BigInteger& bi1,
 
         while (ss > kk) {
             q_hat--;
-            ss -= bi2;
+            ss = ss - bi2;
         }
 
         BigInteger yy = kk - ss;
@@ -845,7 +855,6 @@ BigInteger BigInteger::operator/(const BigInteger& bi) const
         return quotient;
     } else {
         if (bi2.dataLength == 1) {
-            ;
             singleByteDivide(bi1, bi2, quotient, remainder);
         } else {
             multiByteDivide(bi1, bi2, quotient, remainder);
@@ -918,49 +927,6 @@ BigInteger BigInteger::operator&(const BigInteger& bi2) const
 }
 
 //***********************************************************************
-// Overloading of the unary ++ operator
-//***********************************************************************
-/*
-BigInteger BigInteger::operator++() const
-{
-    BigInteger bi1 = *this;
-    BigInteger result = *this;
-
-    long val, carry = 1;
-    int index = 0;
-
-    while (carry != 0 && index < maxLength) {
-        val = (long)(result.data[index]);
-        val++;
-
-        result.data[index] = (uint)(val & 0xFFFFFFFF);
-        carry = val >> 32;
-
-        index++;
-    }
-
-    if (index > result.dataLength)
-        result.dataLength = index;
-    else {
-        while (result.dataLength > 1 && result.data[result.dataLength - 1] == 0)
-            result.dataLength--;
-    }
-
-    // overflow check
-    int lastPos = maxLength - 1;
-
-    // overflow if initial value was +ve but ++ caused a sign
-    // change to negative.
-
-    if ((bi1.data[lastPos] & 0x80000000) == 0 &&
-        (result.data[lastPos] & 0x80000000) != (bi1.data[lastPos] & 0x80000000)) {
-        //throw(new ArithmeticException("Overflow in ++."));
-    }
-    return result;
-}
-*/
-
-//***********************************************************************
 // Overloading of unary >> operators
 //***********************************************************************
 BigInteger BigInteger::operator>>(int shiftVal) const
@@ -991,7 +957,6 @@ BigInteger BigInteger::operator>>(int shiftVal) const
 //***********************************************************************
 // Modulo Exponentiation
 //***********************************************************************
-#include <stdio.h>
 BigInteger BigInteger::modPow(const BigInteger& exp, const BigInteger& n_) const
 {
     BigInteger n = n_;
