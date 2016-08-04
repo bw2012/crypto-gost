@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "BigInteger.h"
 #include "HashGOST.h"
+#include "ECPoint.h"
+#include "DSGost.h"
 
 int char2int(char input)
 {
@@ -29,8 +31,12 @@ std::vector<byte> FromHexStringToByte(std::string input)
     return data;
 }
 
+// TODO: запилить конструктор и з вектора в бигинтеджер
+// TODO: не работает ECPoint multiply
+
 int main(int argc, char** argv)
 {
+
     BigInteger p("6277101735386680763835789423207666416083908700390324961279", 10);
     printf("p  ---> %s\n", p.ToString().c_str());
 
@@ -46,26 +52,60 @@ int main(int argc, char** argv)
     std::string xGs = "03188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012";
     std::vector<byte> xG = FromHexStringToByte(xGs);
     printf("xG ---> %s\n", xGs.c_str());
-    
+
     std::string test = "test";
     std::vector<unsigned char> bytes(test.begin(), test.end());
-   
+
     HashGOST hash(256);
     std::vector<unsigned char> hash_test = hash.GetHash(bytes);
-    
+
     std::string hres = "";
-    for (auto ttt : hash_test)
-    {
-        //printf("hash_test -----> %d\n", ttt);
+    for (auto ttt : hash_test) {
+        // printf("hash_test -----> %d\n", ttt);
         char tmp[2];
         sprintf(tmp, "%02x", ttt);
         hres += tmp;
     }
-    
+
     printf("\n");
     printf("HASH ---> %s\n", hres.c_str());
+
+    DSGost DS(p, a, b, n, xG);
+    BigInteger d = DS.GenPrivateKey(192);
+    printf("private key = %s\n", d.ToString(10).c_str());
+
+    d = BigInteger("4251051025949052349187729432179324385897356673788666960178", 10);
+
+    ECPoint Q = DS.GenPublicKey(d);
     
+    printf("\n\npublic key\n");
+    printf("a  ---> %s\n", Q.a.ToString().c_str());
+    printf("b  ---> %s\n", Q.b.ToString().c_str());
+    printf("FieldChar  ---> %s\n", Q.FieldChar.ToString().c_str());
+    printf("x  ---> %s\n", Q.x.ToString().c_str());
+    printf("y  ---> %s\n", Q.y.ToString().c_str());
+
+    std::string sign = DS.SingGen(bytes, d);
+    printf("\n\n\n");
+    printf("Sign --> %s\n", sign.c_str());
     
+    exit(0);
+
+    bool result = DS.SingVer(bytes, sign, Q);
+
+    if (result) {
+        printf("Correct\n");
+    }else{
+        printf("Wrong\n");
+    }
+
+    /*
+    BigInteger t("29515218379636995773351698872144066530463441601111065046740229564272930713805", 10);
+    BigInteger n("6277101735386680763835789423207666416083908700390324961279", 10);
+
+    BigInteger res = t % n;
+    printf("res  ---> %s\n", res.ToString(10).c_str());
+     */
 
     return 0;
 }

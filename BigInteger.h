@@ -48,12 +48,13 @@ public:
     std::string ToString() const;
     std::string ToString(int radix) const;
     
-    void genRandomBits(int bits);
+    void genRandomBits(int bits, uint seed);
     
     BigInteger modPow(const BigInteger& exp, const BigInteger& n) const;
     
     ~BigInteger();
 
+    int bitCount() const;
     
     int dataLength;
 
@@ -69,9 +70,7 @@ private:
     static int shiftRight(uint buffer[], int shiftVal, int Length);
     
     bool Equals(const BigInteger& bi) const;
-    
-    int bitCount() const;
-    
+
     BigInteger BarrettReduction(const BigInteger& x, const BigInteger& n, const BigInteger& constant) const;
 
 };

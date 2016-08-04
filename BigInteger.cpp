@@ -1,10 +1,10 @@
 #include "BigInteger.h"
-#include <stdio.h>
 
 BigInteger::BigInteger()
 {
     // data = new unsigned int[maxLength];
     dataLength = 1;
+
     for (int i = 0; i < maxLength; i++)
         data[i] = 0;
 }
@@ -570,6 +570,7 @@ BigInteger BigInteger::operator%(const BigInteger& bi) const
         bi1 = -bi1;
         dividendNeg = true;
     }
+
     if ((bi2.data[lastPos] & 0x80000000) != 0) // bi2 negative
         bi2 = -bi2;
 
@@ -578,8 +579,9 @@ BigInteger BigInteger::operator%(const BigInteger& bi) const
     } else {
         if (bi2.dataLength == 1) {
             singleByteDivide(bi1, bi2, quotient, remainder);
-        } else
+        } else {
             multiByteDivide(bi1, bi2, quotient, remainder);
+        }
 
         if (dividendNeg)
             return -remainder;
@@ -595,11 +597,16 @@ void BigInteger::multiByteDivide(const BigInteger& bi1,
 {
     BigInteger bi2 = bi2_;
 
-    printf("---> %s \n", bi1.ToString().c_str());
-
     uint result[maxLength];
+    for (int ii = 0; ii < maxLength; ii++) {
+        result[ii] = 0;
+    }
+
     int remainderLen = bi1.dataLength + 1;
     uint remainder[remainderLen];
+    for (int ii = 0; ii < remainderLen; ii++) {
+        remainder[ii] = 0;
+    }
 
     uint mask = 0x80000000;
     uint val = bi2.data[bi2.dataLength - 1];
@@ -623,6 +630,9 @@ void BigInteger::multiByteDivide(const BigInteger& bi1,
 
     int divisorLen = bi2.dataLength + 1;
     uint dividendPart[divisorLen];
+    for (int ii = 0; ii < divisorLen; ii++) {
+        dividendPart[ii] = 0;
+    }
 
     while (j > 0) {
         ulong dividend = ((ulong)remainder[pos] << 32) + (ulong)remainder[pos - 1];
@@ -847,7 +857,7 @@ BigInteger BigInteger::operator/(const BigInteger& bi) const
     }
 }
 
-void BigInteger::genRandomBits(int bits)
+void BigInteger::genRandomBits(int bits, uint seed)
 {
     int dwords = bits >> 5;
     int remBits = bits & 0x1F;
@@ -858,6 +868,8 @@ void BigInteger::genRandomBits(int bits)
     if (dwords > maxLength) {
         // throw(new ArithmeticException("Number of required bits > maxLength."));
     }
+
+    std::srand(seed);
 
     for (int i = 0; i < dwords; i++) {
         double RandomDouble = (double)std::rand() / RAND_MAX;
@@ -979,7 +991,7 @@ BigInteger BigInteger::operator>>(int shiftVal) const
 //***********************************************************************
 // Modulo Exponentiation
 //***********************************************************************
-
+#include <stdio.h>
 BigInteger BigInteger::modPow(const BigInteger& exp, const BigInteger& n_) const
 {
     BigInteger n = n_;
@@ -997,8 +1009,9 @@ BigInteger BigInteger::modPow(const BigInteger& exp, const BigInteger& n_) const
     {
         tempNum = -(*this) % n;
         thisNegative = true;
-    } else
+    } else {
         tempNum = *this % n; // ensures (tempNum * tempNum) < b^(2k)
+    }
 
     if ((n.data[maxLength - 1] & 0x80000000) != 0) // negative n
         n = -n;
@@ -1018,13 +1031,15 @@ BigInteger BigInteger::modPow(const BigInteger& exp, const BigInteger& n_) const
     for (int pos = 0; pos < exp.dataLength; pos++) {
         uint mask = 0x01;
         // Console.WriteLine("pos = " + pos);
+        // printf("Legendre  ---> %s\n", res.ToString().c_str());
 
         for (int index = 0; index < 32; index++) {
-            if ((exp.data[pos] & mask) != 0)
+
+            if ((exp.data[pos] & mask) != 0) {
                 resultNum = BarrettReduction(resultNum * tempNum, n, constant);
+            }
 
             mask <<= 1;
-
             tempNum = BarrettReduction(tempNum * tempNum, n, constant);
 
             if (tempNum.dataLength == 1 && tempNum.data[0] == 1) {
@@ -1032,7 +1047,9 @@ BigInteger BigInteger::modPow(const BigInteger& exp, const BigInteger& n_) const
                     return -resultNum;
                 return resultNum;
             }
+
             count++;
+
             if (count == totalBits)
                 break;
         }
@@ -1113,6 +1130,8 @@ BigInteger BigInteger::BarrettReduction(const BigInteger& x, const BigInteger& n
         r1.data[i] = x.data[i];
     r1.dataLength = lengthToCopy;
 
+    // printf("r1  ---> %s\n\n", r1.ToString().c_str());
+
     // r2 = (q3 * n) mod b^(k+1)
     // partial multiplication of q3 and n
 
@@ -1139,17 +1158,23 @@ BigInteger BigInteger::BarrettReduction(const BigInteger& x, const BigInteger& n
     while (r2.dataLength > 1 && r2.data[r2.dataLength - 1] == 0)
         r2.dataLength--;
 
-    r1 -= r2;
+    r1 = r1 - r2;
     if ((r1.data[maxLength - 1] & 0x80000000) != 0) // negative
     {
         BigInteger val;
         val.data[kPlusOne] = 0x00000001;
         val.dataLength = kPlusOne + 1;
-        r1 += val;
+        r1 = r1 + val;
     }
 
-    while (r1 >= n)
-        r1 -= n;
+    //printf("final r1  ---> %s\n", r1.ToString().c_str());
+
+    int ooo = 0;
+    while (r1 >= n) {
+        r1 = r1 - n;
+        // printf("%d\n",ooo);
+        ooo++;
+    }
 
     return r1;
 }
