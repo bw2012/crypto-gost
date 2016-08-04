@@ -57,10 +57,10 @@ int main(int argc, char** argv)
     std::vector<unsigned char> bytes(test.begin(), test.end());
 
     HashGOST hash(256);
-    std::vector<unsigned char> hash_test = hash.GetHash(bytes);
+    std::vector<unsigned char> H = hash.GetHash(bytes);
 
     std::string hres = "";
-    for (auto ttt : hash_test) {
+    for (auto ttt : H) {
         // printf("hash_test -----> %d\n", ttt);
         char tmp[2];
         sprintf(tmp, "%02x", ttt);
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
     BigInteger d = DS.GenPrivateKey(192);
     printf("private key = %s\n", d.ToString(10).c_str());
 
-    d = BigInteger("4251051025949052349187729432179324385897356673788666960178", 10);
+    //d = BigInteger("4251051025949052349187729432179324385897356673788666960178", 10);
 
     ECPoint Q = DS.GenPublicKey(d);
        
@@ -85,11 +85,11 @@ int main(int argc, char** argv)
     printf("x  ---> %s\n", Q.x.ToString().c_str());
     printf("y  ---> %s\n", Q.y.ToString().c_str());
 
-    std::string sign = DS.SingGen(bytes, d);
+    std::string sign = DS.SingGen(H, d);
     printf("\n\n\n");
     printf("Sign --> %s\n", sign.c_str());
 
-    bool result = DS.SingVer(bytes, sign, Q);
+    bool result = DS.SingVer(H, sign, Q);
 
     if (result) {
         printf("Correct\n");

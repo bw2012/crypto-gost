@@ -159,7 +159,6 @@ std::string DSGost::SingGen(std::vector<byte> msg, BigInteger d)
     std::string Svector = padding(s.ToString(16), n.bitCount() / 4);
 
     return Rvector + Svector;
-    // return "";
 }
 
 //дополняем подпись нулями слева до длины n, где n - длина модуля в битах
@@ -175,11 +174,15 @@ std::string DSGost::padding(std::string input, int size)
 
 //проверяем подпись
 bool DSGost::SingVer(std::vector<byte> msg, std::string sing, ECPoint Q)
-{
+{   
     std::string Rvector = sing.substr(0, n.bitCount() / 4);
+        printf("Rvector  ---> %s\n", Rvector.c_str());
+    
     std::string Svector = sing.substr(n.bitCount() / 4, n.bitCount() / 4);
 
     BigInteger r(Rvector, 16);
+        printf("r  ---> %s\n", r.ToString(16).c_str());
+    
     BigInteger s(Svector, 16);
 
     if ((r < 1) || (r > (n - 1)) || (s < 1) || (s > (n - 1)))
@@ -190,31 +193,24 @@ bool DSGost::SingVer(std::vector<byte> msg, std::string sing, ECPoint Q)
         H[i] = msg[i];
     }
 
-    printf("test1\n");
-
-    BigInteger alpha(H, sing.size());
+    BigInteger alpha(H, msg.size());
     BigInteger e = alpha % n;
+    
+    printf("alpha  ---> %s\n", alpha.ToString().c_str());
+    printf("n  ---> %s\n", n.ToString().c_str());
+    printf("e  ---> %s\n", e.ToString().c_str());
 
     if (e == 0)
         e = 1;
 
-    printf("test2\n");
-
     BigInteger v = e.modInverse(n);
+    
+    printf("v  ---> %s\n", v.ToString().c_str());
+        
     BigInteger z1 = (s * v) % n;
     BigInteger z2 = n + ((-(r * v)) % n);
 
-    printf("test3\n");
-
-    ECPoint G = GDecompression();
-    
-    printf("Ga  ---> %s\n", G.a.ToString().c_str());
-    printf("Gb  ---> %s\n", G.b.ToString().c_str());
-    printf("GFieldChar  ---> %s\n", G.FieldChar.ToString().c_str());
-    printf("Gx  ---> %s\n", G.x.ToString().c_str());
-    printf("Gy  ---> %s\n", G.y.ToString().c_str());
-
-    printf("test4\n");
+    ECPoint G = GDecompression();  
 
     ECPoint A = G.Multiply(z1);
     ECPoint B = Q.Multiply(z2);
@@ -223,6 +219,9 @@ bool DSGost::SingVer(std::vector<byte> msg, std::string sing, ECPoint Q)
 
     ECPoint C = A + B;
     BigInteger R = C.x % n;
+
+    printf("R  ---> %s\n", R.ToString().c_str());
+    printf("r  ---> %s\n", r.ToString(16).c_str());
 
     if (R == r)
         return true;

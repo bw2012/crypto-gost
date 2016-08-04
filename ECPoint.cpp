@@ -36,7 +36,7 @@ ECPoint ECPoint::Double() const
         dy = dy + p.FieldChar;
 
     BigInteger m = (dy * dx.modInverse(p.FieldChar)) % p.FieldChar;
-    
+
     p2.x = (m * m - p.x - p.x) % p.FieldChar;
     p2.y = (m * (p.x - p2.x) - p.y) % p.FieldChar;
 
@@ -79,7 +79,7 @@ ECPoint ECPoint::operator+(const ECPoint& p2) const
         p3.x = p3.x + p1.FieldChar;
 
     if (p3.y < 0)
-        p3.y = p3.y +p1.FieldChar;
+        p3.y = p3.y + p1.FieldChar;
 
     return p3;
 }

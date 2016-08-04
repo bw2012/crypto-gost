@@ -165,7 +165,8 @@ std::string BigInteger::ToString() const
 std::string BigInteger::ToString(int radix) const
 {
 
-    std::string charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    //std::string charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::string charSet = "abcdefghijklmnopqrstuvwxyz";
     std::string result = "";
 
     BigInteger a = *this;
