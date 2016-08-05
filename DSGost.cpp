@@ -26,27 +26,7 @@ BigInteger DSGost::GenPrivateKey(int BitSize)
 ECPoint DSGost::GenPublicKey(BigInteger d)
 {
     ECPoint G = GDecompression();
-    
-    /*
-    printf("Ga  ---> %s\n", G.a.ToString().c_str());
-    printf("Gb  ---> %s\n", G.b.ToString().c_str());
-    printf("GFieldChar  ---> %s\n", G.FieldChar.ToString().c_str());
-    printf("Gx  ---> %s\n", G.x.ToString().c_str());
-    printf("Gy  ---> %s\n", G.y.ToString().c_str());
-    printf("------------------------------------------------\n");
-    printf("d  ---> %s\n", d.ToString().c_str());
-     */
-    
     ECPoint Q = G.Multiply(d);
-    
-    /*
-    printf("Qa  ---> %s\n", Q.a.ToString().c_str());
-    printf("Qb  ---> %s\n", Q.b.ToString().c_str());
-    printf("QFieldChar  ---> %s\n", Q.FieldChar.ToString().c_str());
-    printf("Qx  ---> %s\n", Q.x.ToString().c_str());
-    printf("Qy  ---> %s\n", Q.y.ToString().c_str());
-     */
-    
     
     return Q;
 }
@@ -90,10 +70,7 @@ BigInteger DSGost::ModSqrt(const BigInteger& a, const BigInteger& q)
     BigInteger b;
 
     do {
-        // printf("time %d\n", time(0));
         b.genRandomBits(255, time(0));
-        // b = BigInteger("29515218379636995773351698872144066530463441601111065046740229564272930713805",10);
-        // printf("b  ---> %d %s %d\n", b.dataLength, b.ToString().c_str(), b.ToString().length());
     } while (Legendre(b, q) == 1);
 
     BigInteger s = 0;
@@ -175,14 +152,9 @@ std::string DSGost::padding(std::string input, int size)
 //проверяем подпись
 bool DSGost::SingVer(std::vector<byte> msg, std::string sing, ECPoint Q)
 {   
-    std::string Rvector = sing.substr(0, n.bitCount() / 4);
-        printf("Rvector  ---> %s\n", Rvector.c_str());
-    
+    std::string Rvector = sing.substr(0, n.bitCount() / 4);   
     std::string Svector = sing.substr(n.bitCount() / 4, n.bitCount() / 4);
-
     BigInteger r(Rvector, 16);
-        printf("r  ---> %s\n", r.ToString(16).c_str());
-    
     BigInteger s(Svector, 16);
 
     if ((r < 1) || (r > (n - 1)) || (s < 1) || (s > (n - 1)))
@@ -195,18 +167,11 @@ bool DSGost::SingVer(std::vector<byte> msg, std::string sing, ECPoint Q)
 
     BigInteger alpha(H, msg.size());
     BigInteger e = alpha % n;
-    
-    printf("alpha  ---> %s\n", alpha.ToString().c_str());
-    printf("n  ---> %s\n", n.ToString().c_str());
-    printf("e  ---> %s\n", e.ToString().c_str());
 
     if (e == 0)
         e = 1;
 
     BigInteger v = e.modInverse(n);
-    
-    printf("v  ---> %s\n", v.ToString().c_str());
-        
     BigInteger z1 = (s * v) % n;
     BigInteger z2 = n + ((-(r * v)) % n);
 
@@ -215,13 +180,8 @@ bool DSGost::SingVer(std::vector<byte> msg, std::string sing, ECPoint Q)
     ECPoint A = G.Multiply(z1);
     ECPoint B = Q.Multiply(z2);
 
-    printf("test5\n");
-
     ECPoint C = A + B;
     BigInteger R = C.x % n;
-
-    printf("R  ---> %s\n", R.ToString().c_str());
-    printf("r  ---> %s\n", r.ToString(16).c_str());
 
     if (R == r)
         return true;

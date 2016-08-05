@@ -61,7 +61,6 @@ int main(int argc, char** argv)
 
     std::string hres = "";
     for (auto ttt : H) {
-        // printf("hash_test -----> %d\n", ttt);
         char tmp[2];
         sprintf(tmp, "%02x", ttt);
         hres += tmp;
@@ -71,13 +70,12 @@ int main(int argc, char** argv)
     printf("HASH ---> %s\n", hres.c_str());
 
     DSGost DS(p, a, b, n, xG);
+
     BigInteger d = DS.GenPrivateKey(192);
     printf("private key = %s\n", d.ToString(10).c_str());
 
-    //d = BigInteger("4251051025949052349187729432179324385897356673788666960178", 10);
-
     ECPoint Q = DS.GenPublicKey(d);
-       
+
     printf("\n\npublic key\n");
     printf("a  ---> %s\n", Q.a.ToString().c_str());
     printf("b  ---> %s\n", Q.b.ToString().c_str());
@@ -93,17 +91,9 @@ int main(int argc, char** argv)
 
     if (result) {
         printf("Correct\n");
-    }else{
+    } else {
         printf("Wrong\n");
     }
-
-    /*
-    BigInteger t("29515218379636995773351698872144066530463441601111065046740229564272930713805", 10);
-    BigInteger n("6277101735386680763835789423207666416083908700390324961279", 10);
-
-    BigInteger res = t % n;
-    printf("res  ---> %s\n", res.ToString(10).c_str());
-     */
 
     return 0;
 }
