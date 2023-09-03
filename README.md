@@ -1,6 +1,12 @@
 # ecc-cpp
 
 Elliptic curve cryptography C++ example.
-Not finished. Work in progress.
 
+
+
+# Credits
+
+https://habr.com/ru/articles/191240/
+
+https://github.com/NeverWalkAloner/ECCGost
 
